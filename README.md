@@ -116,18 +116,17 @@ I used Postman to test registration, login, and the protected user-profile endpo
 
 | Test | Request | Observed Result |
 |---|---|---|
-| Valid registration | POST /api/auth/register | 201 Created; account returned without password fields |
-| Duplicate email | POST /api/auth/register | 409 Conflict; duplicate account rejected |
-| Missing display name | POST /api/auth/register | 400 Bad Request; invalid registration rejected |
-| Correct login credentials | POST /api/auth/login | 200 OK; access token returned |
-| Incorrect password | POST /api/auth/login | 401 Unauthorized; generic credential error |
-| Unregistered email | POST /api/auth/login | 401 Unauthorized; same generic credential error |
-| Valid token | GET /api/users/me | 200 OK; authenticated account’s profile returned |
-| Missing token | GET /api/users/me | 401 Unauthorized |
-| Modified token | GET /api/users/me | 401 Unauthorized |
-| Expired token | GET /api/users/me | 401 Unauthorized |
-| Allowed frontend origin | OPTIONS /api/users/me with Origin http://localhost:5173 | 200 OK; matching Access-Control-Allow-Origin header |
-| Disallowed frontend origin | OPTIONS /api/users/me with Origin http://localhost:3000 | 403 Forbidden; CORS request rejected |
+| Register Success | POST /api/auth/register | 201 Created; Postman Test Account created; Display Name: Postman Test, Email: PostmanTest@gmail.com, Password: GameFlixPostManTest1000! |
+| Duplicate email | POST /api/auth/register | 409 Conflict; duplicate account rejected; Display Name: Postman Test, Email: PostmanTest@gmail.com, Password: GameFlixPostManTest1000! |
+| Missing display name | POST /api/auth/register | 400 Bad Request; No Email: Display Name: Postman Test, Email: , Password: GameFlixPostManTest1000! |
+| Correct login credentials | POST /api/auth/login | 200 OK; access token returned; Email: PostmanTest@gmail.com, Password: GameFlixPostManTest1000!, Token generated: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnYW1lZmxpeCIsInN1YiI6IjQiLCJhdWQiOiJnYW1lZmxpeC1hcGkiLCJleHAiOjE3OTIwMDA1OTQsImlhdCI6MTc5MTk5OTY5NH0.TlFrIBmq6MSUwTbQxVFJwfQpvtF16Pr79_wCHpKzMwk |
+| Incorrect password | POST /api/auth/login | 401 Unauthorized; generic credential error; Email: PostmanTest@gmail.com, Password: GameFlixPostManTest |
+| Valid token | GET /api/users/me | 200 OK; authenticated account’s profile returned; Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnYW1lZmxpeCIsInN1YiI6IjQiLCJhdWQiOiJnYW1lZmxpeC1hcGkiLCJleHAiOjE3OTIwMDA1OTQsImlhdCI6MTc5MTk5OTY5NH0.TlFrIBmq6MSUwTbQxVFJwfQpvtF16Pr79_wCHpKzMwk |
+| Modified token | GET /api/users/me | 401 Unauthorized; Token: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnYW1lZmxpeCIsInN1YiI6IjQiLCJhdWQiOiJnYW1lZmxpeC1hcGkiLCJleHAiOjE3OTIwMDA1OTQsImlhdCI6MTc5MTk5OTY5NH0.TlFrIBmq6MSUwTbQxVFJwfQpvtF16Pr79_wCHpKz |
+| Allowed frontend origin | OPTIONS /api/users/me with Origin http://localhost:5173 | 200 OK; matching Access-Control-Allow-Origin header: Localhost:5137 |
+| Disallowed frontend origin | OPTIONS /api/users/me with Origin http://localhost:3000 | 403 Forbidden; CORS request rejected: Localhost: 3000 |
+
+Screenshots of all these tests are in the submitted word document
 
 I also inspected the test account in MySQL and confirmed that password_hash contained a bcrypt hash with the `{bcrypt}` prefix instead of the original password.
 
