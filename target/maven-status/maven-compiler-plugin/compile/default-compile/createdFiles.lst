@@ -1,0 +1,11 @@
+com\example\gameflix\service\JwtServiceImpl.class
+com\example\gameflix\GameFlixApplication.class
+com\example\gameflix\model\User.class
+com\example\gameflix\controller\AuthRestController.class
+com\example\gameflix\service\JwtService.class
+com\example\gameflix\repository\UserRepository.class
+com\example\gameflix\model\Role.class
+com\example\gameflix\service\UserService.class
+com\example\gameflix\service\UserServiceImpl.class
+com\example\gameflix\config\JwtConfig.class
+com\example\gameflix\controller\UsersRestController.class
