@@ -38,3 +38,7 @@ out/
 
 # Keep local database credentials and JWT secret out of Git.
 application-local.properties
+
+.env
+
+.target/

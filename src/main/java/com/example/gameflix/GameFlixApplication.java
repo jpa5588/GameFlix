@@ -16,6 +16,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class GameFlixApplication {
 
     // Register the returned SecurityFilterChain as a Spring-managed bean.
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationConverter jwtAuthenticationConverter)
             throws Exception {
 
         //HttpSecurity variable used for the builder Spring supplies for configuring security.
@@ -78,18 +80,23 @@ public class GameFlixApplication {
                         // Registration and login endpoints to test without a JWT.
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
 
+                        // Only administrators can access these routes.
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
                         // Accessing the current user's profile requires a valid JWT.
-                        .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyRole("CUSTOMER", "ADMIN")
 
                         // Deny all other requests.
                         .anyRequest().denyAll()
                 )
 
-                // Enable JWT authentication for requests containing a token.
+                // Validate JWTs and convert the role into a Spring authority.
                 .oauth2ResourceServer(oauth2 -> oauth2
-
-                        // Use the JwtDecoder bean configured in JwtConfig.
-                        .jwt(Customizer.withDefaults())
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(
+                                        jwtAuthenticationConverter
+                                )
+                        )
                 )
 
                 // Return HTTP 401 when a protected request is not authenticated.
@@ -131,6 +138,31 @@ public class GameFlixApplication {
         source.registerCorsConfiguration("/api/**", configuration);
 
         return source;
+    }
+
+    // Tell Spring how to turn our JWT role into an authority.
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+
+        // Read the role claim instead of Spring's default scope claims.
+        JwtGrantedAuthoritiesConverter authoritiesConverter =
+                new JwtGrantedAuthoritiesConverter();
+
+        authoritiesConverter.setAuthoritiesClaimName("role");
+
+        // Add the prefix Spring expects when we use hasRole().
+        // For example, ADMIN becomes ROLE_ADMIN.
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+
+        // Use these authorities when creating the authenticated user.
+        JwtAuthenticationConverter authenticationConverter =
+                new JwtAuthenticationConverter();
+
+        authenticationConverter.setJwtGrantedAuthoritiesConverter(
+                authoritiesConverter
+        );
+
+        return authenticationConverter;
     }
 
 }

@@ -42,6 +42,19 @@ public class User {
     @Column(name = "status", nullable = false, length = 30)
     private String status = "ACTIVE";
 
+    // Store the role name, such as CUSTOMER or ADMIN.
+    @Enumerated(EnumType.STRING)
+
+    // Give existing accounts CUSTOMER when Hibernate adds the column.
+    @Column(name = "role", nullable = false, length = 20,
+            columnDefinition = "VARCHAR(20) DEFAULT 'CUSTOMER'")
+
+    // Return the role in responses, but ignore it in incoming JSON.
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+
+    // New accounts start as customers.
+    private Role role = Role.CUSTOMER;
+
     //Column to store timestamp when the account was created, required, do not update, make column a SQL timestamp
     //Use the localdatetime class to store the date it was created
     @Column(name = "created_time", nullable = false, updatable = false, columnDefinition = "TIMESTAMP")
@@ -102,5 +115,13 @@ public class User {
 
     public void setCreatedTime(LocalDateTime createdTime) {
         this.createdTime = createdTime;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

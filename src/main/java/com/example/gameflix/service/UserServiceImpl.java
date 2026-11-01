@@ -5,10 +5,10 @@ import com.example.gameflix.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.example.gameflix.model.Role;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
@@ -95,12 +95,15 @@ public class UserServiceImpl implements UserService {
         }
 
         // Create a fresh account using only the information we need.
-        // The server sets the ID, status, and creation time.
+        // The server sets the ID, status, role, and creation time.
         User user = new User();
         user.setDisplayName(displayName);
         user.setEmail(email);
         user.setPasswordHash(passwordEncoder.encode(password));
         user.setStatus("ACTIVE");
+
+        // Every account created through registration starts as a customer.
+        user.setRole(Role.CUSTOMER);
 
         try {
             // Save the account and return it. User hides both password fields in JSON.

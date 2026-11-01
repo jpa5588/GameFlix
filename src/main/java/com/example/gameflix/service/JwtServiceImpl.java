@@ -54,6 +54,13 @@ public class JwtServiceImpl implements JwtService {
             );
         }
 
+        // Make sure the account has a role before creating its token.
+        if (user.getRole() == null) {
+            throw new IllegalArgumentException(
+                    "A user role is required to create a token."
+            );
+        }
+
         // Capture the current time once for the token's timestamps.
         Instant now = Instant.now();
 
@@ -78,6 +85,10 @@ public class JwtServiceImpl implements JwtService {
 
                 // Include the audience so JwtConfig can check it later.
                 .audience(List.of(audience))
+
+                // Include the role from the verified database account.
+                // name() converts the enum into text, such as CUSTOMER or ADMIN.
+                .claim("role", user.getRole().name())
 
                 // Record when the token was created.
                 .issuedAt(now)
