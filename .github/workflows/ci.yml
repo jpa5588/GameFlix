@@ -2,9 +2,9 @@ name: Spring Boot CI
 
 on:
   push:
-    branches: [main]
+    branches: [master]
   pull_request:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     services:
       mysql:
@@ -57,4 +57,47 @@ jobs:
         run: mvn --batch-mode clean package
 
       - name: Build Docker image
-        run: docker build -t gameflix-backend .
+        run: docker build -t gameflix-backend:latest .
+
+      - name: Generate CycloneDX SBOM with Syft
+        uses: anchore/sbom-action@v0
+        with:
+          image: gameflix-backend:latest
+          syft-version: v1.54.1
+          format: cyclonedx-json
+          output-file: sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Install Trivy
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+        with:
+          version: v0.76.1
+          cache: true
+
+      - name: Report HIGH and CRITICAL vulnerabilities
+        shell: bash
+        run: |
+          trivy image --timeout 30m --image-src docker \
+            --scanners vuln --severity HIGH,CRITICAL \
+            --ignorefile /dev/null --exit-code 0 --format json \
+            --output trivy-high-critical.json gameflix-backend:latest
+          trivy convert --format table --ignorefile /dev/null \
+            --output trivy-high-critical.txt trivy-high-critical.json
+
+      - name: Fail build on any CRITICAL vulnerability
+        shell: bash
+        run: |
+          trivy convert --format table --severity CRITICAL \
+            --ignorefile /dev/null --exit-code 1 trivy-high-critical.json
+
+      - name: Save SBOM and vulnerability reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: gameflix-security-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            sbom.cdx.json
+            trivy-high-critical.json
+            trivy-high-critical.txt
+          if-no-files-found: error

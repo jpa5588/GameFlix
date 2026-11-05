@@ -86,6 +86,12 @@ public class GameFlixApplication {
                         // Accessing the current user's profile requires a valid JWT.
                         .requestMatchers(HttpMethod.GET, "/api/users/me").hasAnyRole("CUSTOMER", "ADMIN")
 
+                        // Customers and administrators can list genres and view genre details.
+                        .requestMatchers(HttpMethod.GET, "/api/genres", "/api/genres/*").hasAnyRole("CUSTOMER", "ADMIN")
+
+                        // Only administrators can create genres.
+                        .requestMatchers(HttpMethod.POST, "/api/genres").hasRole("ADMIN")
+
                         // Deny all other requests.
                         .anyRequest().denyAll()
                 )

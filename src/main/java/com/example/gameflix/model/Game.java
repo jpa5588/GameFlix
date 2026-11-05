@@ -1,6 +1,8 @@
 package com.example.gameflix.model;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 // Store each game as a record in the Games table.
 @Entity
@@ -34,6 +36,36 @@ public class Game {
     @Column(name = "status", nullable = false, length = 30)
     private String status = "ACTIVE";
 
+    // A game can have multiple genres, and each genre can belong to many games.
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "Game_Genres",
+
+            // Connect each join-table row to a game.
+            joinColumns = @JoinColumn(
+                    name = "game_id",
+                    nullable = false
+            ),
+
+            // Connect that same row to a genre.
+            inverseJoinColumns = @JoinColumn(
+                    name = "genre_id",
+                    nullable = false
+            )
+    )
+    // Start new games with an empty collection of genres.
+    private Set<Genre> genres = new HashSet<>();
+
+    // Return the genres connected to this game.
+    public Set<Genre> getGenres() {
+        return genres;
+    }
+
+    // Replace the game's genres with the supplied collection.
+    public void setGenres(Set<Genre> genres) {
+
+        // Keep an empty collection if no genres were provided.
+        this.genres = genres == null ? new HashSet<>() : genres;
+    }
     // Default constructor required by JPA.
     public Game() {
     }
